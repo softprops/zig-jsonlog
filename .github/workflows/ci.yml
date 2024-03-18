@@ -30,7 +30,10 @@ jobs:
       - name: Examples
         run: zig build run-demo-example
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
     steps:
