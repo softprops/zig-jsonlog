@@ -6,6 +6,10 @@
     A zero-allocation JSON formatting logging library for zig
 </div>
 
+---
+
+[![ci](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml/badge.svg)](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml) ![License Info](https://img.shields.io/github/license/softprops/zig-jsonlog) ![Release](https://img.shields.io/github/v/release/softprops/zig-jsonlog) [![Zig Support](https://img.shields.io/badge/zig-0.11.0-black?logo=zig)](https://ziglang.org/documentation/0.11.0/)
+
 ## 🍬 features
 
 - zero-allocation
