@@ -17,17 +17,20 @@ const defaultLogger = Logger(std.io.getStdErr().writer());
 
 /// A JSON-based logging impl that writes to stderr
 ///
-/// To write to another `std.io.Writer` use `Logger(yourWriter)`
+/// To write to another `std.io.Writer` use `loggerFn(yourWriter)`
 pub const logFn = defaultLogger.func;
 
 const default = scoped(.default);
 
+///  Same as std.log.scoped by provides an api for supplying arbitrary metadata to log entries
 pub fn scoped(comptime scope: @Type(.EnumLiteral)) type {
     return struct {
+        /// Same as std.log.debug except you may provide arbitrary metadata to serialize with log output
         pub fn debug(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.debug, scope, format, args);
         }
 
+        /// Same as std.log.info except you may provide arbitrary metadata to serialize with log output
         pub fn info(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.info, scope, format, args);
         }
@@ -74,7 +77,14 @@ fn Logger(comptime writer: anytype) type {
             comptime format: []const u8,
             args: anytype,
         ) void {
-            metaFunc(level, scope, format, args, null, std.time.milliTimestamp());
+            metaFunc(
+                level,
+                scope,
+                format,
+                args,
+                null,
+                std.time.milliTimestamp(),
+            );
         }
 
         fn metaFunc(
@@ -87,10 +97,16 @@ fn Logger(comptime writer: anytype) type {
         ) void {
             var msg: [std.fmt.count(format, args)]u8 = undefined;
             _ = std.fmt.bufPrint(&msg, format, args) catch |e| {
+                // the only possible error here is errror.NoSpaceLeft and if that happens
+                // in means the std lib fmt.count(...) is broken
                 std.debug.print("caught err writing to buffer {any}", .{e});
+                return;
             };
-            var tsbuf: [26]u8 = undefined;
-            const ts = datetime.Datetime.fromTimestamp(milliTimestamp).formatISO8601Buf(&tsbuf, false) catch "-";
+            var tsbuf: [25]u8 = undefined; // yyyy-mm-ddThh:mm:ss+hh:ss
+            const ts = datetime.Datetime.fromTimestamp(milliTimestamp).formatISO8601Buf(&tsbuf, false) catch |e| blk: {
+                std.debug.print("timestamp error {any}", .{e});
+                break :blk "???";
+            };
             var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
                 .ts = ts,
                 .level = level.asText(),
