@@ -11,11 +11,13 @@ pub const std_options = struct {
 };
 
 pub fn main() void {
+    // std logging interfaces
     std.log.debug("DEBUG", .{});
     std.log.info("INFO", .{});
     std.log.warn("WARN", .{});
     std.log.err("ERR", .{});
 
+    // extended logging interfaces to add metadata context to logs
     jsonLog.warn("things could be better", .{}, .{
         .endpoint = "/home",
         .method = "GET",
