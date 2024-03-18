@@ -1,62 +1,123 @@
+//! Provides a JSON formatter for std lib logging
+//!
+//! Use as follows
+//!
+//! ```zig
+//! const jsonLog = @import("jsonlog");
+//! pub const std_options = struct {
+//!   pub const logFn = jsonLog.func;
+//! }
+//! ```
 const std = @import("std");
 
-pub const std_options = struct {
-    pub const logFn = jsonLog;
-};
+const LogFn = fn (comptime std.log.Level, comptime @TypeOf(.enum_literal), comptime []const u8, anytype) void;
 
-pub fn jsonLog(
-    comptime level: std.log.Level,
-    comptime scope: @TypeOf(.EnumLiteral),
-    comptime format: []const u8,
-    args: anytype,
-) void {
-    impl(
-        std.io.getStdErr().writer(),
-        level,
-        scope,
-        format,
-        args,
-    );
-}
+const defaultLogger = Logger(std.io.getStdErr().writer());
 
-fn impl(
-    writer: anytype,
-    comptime level: std.log.Level,
-    comptime scope: @TypeOf(.EnumLiteral),
-    comptime format: []const u8,
-    args: anytype,
-) void {
-    var msg: [std.fmt.count(format, args)]u8 = undefined;
-    _ = std.fmt.bufPrint(&msg, format, args) catch |err| {
-        std.debug.print("caught err writing to buffer {any}", .{err});
+/// A JSON-based logging impl that writes to stderr
+///
+/// To write to another `std.io.Writer` use `Logger(yourWriter)`
+pub const logFn = defaultLogger.func;
+
+const default = scoped(.default);
+
+pub fn scoped(comptime scope: @Type(.EnumLiteral)) type {
+    return struct {
+        pub fn debug(comptime format: []const u8, args: anytype, meta: anytype) void {
+            withMeta(meta)(.debug, scope, format, args);
+        }
+
+        pub fn info(comptime format: []const u8, args: anytype, meta: anytype) void {
+            withMeta(meta)(.info, scope, format, args);
+        }
+
+        /// Same as std.log.warn except you may provide arbitrary metadata to serialize with log output
+        pub fn warn(comptime format: []const u8, args: anytype, meta: anytype) void {
+            withMeta(meta)(.warn, scope, format, args);
+        }
+
+        /// Same as std.log.err except you may provide arbitrary metadata to serialize with log output
+        pub fn err(comptime format: []const u8, args: anytype, meta: anytype) void {
+            withMeta(meta)(.err, scope, format, args);
+        }
     };
-    nosuspend std.json.stringify(.{
-        .level = level.asText(),
-        .msg = msg,
-        .scope = @tagName(scope),
-    }, .{}, writer) catch |err| {
-        std.debug.print("caught err writing json {any}", .{err});
+}
+
+/// Same as std.log.debug except you may provide arbitrary metadata to serialize with log output
+pub const debug = default.debug;
+/// Same as std.log.info except you may provide arbitrary metadata to serialize with log output
+pub const info = default.info;
+/// Same as std.log.warn except you may provide arbitrary metadata to serialize with log output
+pub const warn = default.warn;
+/// Same as std.log.err except you may provide arbitrary metadata to serialize with log output
+pub const err = default.err;
+
+fn withMeta(comptime data: anytype) LogFn {
+    return struct {
+        fn func(
+            comptime level: std.log.Level,
+            comptime scope: @TypeOf(.EnumLiteral),
+            comptime format: []const u8,
+            args: anytype,
+        ) void {
+            defaultLogger.metaFunc(level, scope, format, args, data);
+        }
+    }.func;
+}
+
+fn Logger(comptime writer: anytype) type {
+    return struct {
+        fn func(
+            comptime level: std.log.Level,
+            comptime scope: @TypeOf(.EnumLiteral),
+            comptime format: []const u8,
+            args: anytype,
+        ) void {
+            metaFunc(
+                level,
+                scope,
+                format,
+                args,
+                null,
+            );
+        }
+
+        fn metaFunc(
+            comptime level: std.log.Level,
+            comptime scope: @TypeOf(.EnumLiteral),
+            comptime format: []const u8,
+            args: anytype,
+            meta: anytype,
+        ) void {
+            var msg: [std.fmt.count(format, args)]u8 = undefined;
+            _ = std.fmt.bufPrint(&msg, format, args) catch |e| {
+                std.debug.print("caught err writing to buffer {any}", .{e});
+            };
+            var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
+                .level = level.asText(),
+                .msg = msg,
+                .scope = @tagName(scope),
+            } else .{
+                .level = level.asText(),
+                .msg = msg,
+                .scope = @tagName(scope),
+                .meta = meta,
+            };
+            nosuspend std.json.stringify(payload, .{}, writer) catch |e| {
+                std.debug.print("caught err writing json {any}", .{e});
+            };
+            writer.writeAll("\n") catch return;
+        }
     };
-    writer.writeAll("\n") catch return;
 }
 
-pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-
-    std.log.debug("test 1", .{});
-    std.log.info("test 2", .{});
-    std.log.warn("test 3", .{});
-    std.log.err("test 4", .{});
-}
-
-test "simple test" {
+test "func" {
     const allocator = std.testing.allocator;
-    var list = std.ArrayList(u8).init(allocator);
+    comptime var list = std.ArrayList(u8).init(allocator);
     defer list.deinit();
-    var writer = list.writer();
+    comptime var writer = list.writer();
 
-    impl(writer, .info, .bar, "test", .{});
+    Logger(writer).func(.info, .bar, "test", .{});
     const actual = try list.toOwnedSlice();
     defer allocator.free(actual);
     try std.testing.expectEqualStrings(
