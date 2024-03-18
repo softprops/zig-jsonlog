@@ -109,7 +109,7 @@ fn Logger(comptime writer: anytype) type {
                 std.debug.print("caught err writing to buffer {any}", .{e});
                 return;
             };
-            var tsbuf: [25]u8 = undefined; // yyyy-mm-ddThh:mm:ss+hh:ss
+            var tsbuf: [32]u8 = undefined; // yyyy-mm-ddThh:mm:ss+hh:ss
             const ts = datetime.Datetime.fromTimestamp(milliTimestamp).formatISO8601Buf(&tsbuf, false) catch |e| blk: {
                 std.debug.print("timestamp error {any}", .{e});
                 break :blk "???";
