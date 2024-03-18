@@ -79,7 +79,7 @@ pub fn build(b: *std.Build) void {
 
     const optimize = b.standardOptimizeOption(.{});
     // 👇 de-reference jsonlog dep from build.zig.zon
-    const envy = b.dependency("jsonlog", .{
+    const jsonlog = b.dependency("jsonlog", .{
         .target = target,
         .optimize = optimize,
     });
