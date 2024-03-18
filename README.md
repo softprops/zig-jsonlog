@@ -2,6 +2,13 @@
 
 A zero-allocation JSON formatting logging library for zig
 
+## 🍬 features
+
+- zero-allocation
+- append metadata to logs
+
+## examples
+
 ```zig
 const std = @import("std");
 const jsonLog = @import("jsonlog");
