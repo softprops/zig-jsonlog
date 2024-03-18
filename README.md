@@ -5,7 +5,7 @@ A zero-allocation JSON formatting logging library for zig
 ## 🍬 features
 
 - zero-allocation
-- append metadata to logs
+- append arbitrary metadata to your logs
 
 ## examples
 
@@ -32,9 +32,9 @@ pub fn main() void {
 ```
 
 ```
-{"level":"debug","msg":"DEBUG","scope":"demo"}
-{"level":"info","msg":"INFO","scope":"demo"}
-{"level":"warning","msg":"WARN","scope":"demo"}
-{"level":"error","msg":"ERR","scope":"demo"}
-{"level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
+{"ts":"2024-03-18T15:32:37+00:00","level":"debug","msg":"DEBUG","scope":"demo"}
+{"ts":"2024-03-18T15:32:37+00:00","level":"info","msg":"INFO","scope":"demo"}
+{"ts":"2024-03-18T15:32:37+00:00","level":"warning","msg":"WARN","scope":"demo"}
+{"ts":"2024-03-18T15:32:37+00:00","level":"error","msg":"ERR","scope":"demo"}
+{"ts":"2024-03-18T15:32:37+00:00","level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
 ```

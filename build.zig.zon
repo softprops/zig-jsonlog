@@ -3,4 +3,10 @@
     .version = "0.1.0",
     .minimum_zig_version = "0.11.0",
     .paths = .{""},
+    .dependencies = .{
+        .datetime = .{
+            .url = "https://github.com/frmdstryr/zig-datetime/archive/ddecb4e508e99ad6ab1314378225413959d54756.tar.gz",
+            .hash = "12202cbb909feb6b09164ac997307c6b1ab35cb05a846198cf41f7ec608d842c1761",
+        },
+    },
 }

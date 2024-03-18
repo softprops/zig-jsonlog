@@ -9,6 +9,7 @@
 //! }
 //! ```
 const std = @import("std");
+const datetime = @import("datetime").datetime;
 
 const LogFn = fn (comptime std.log.Level, comptime @TypeOf(.enum_literal), comptime []const u8, anytype) void;
 
@@ -60,7 +61,7 @@ fn withMeta(comptime data: anytype) LogFn {
             comptime format: []const u8,
             args: anytype,
         ) void {
-            defaultLogger.metaFunc(level, scope, format, args, data);
+            defaultLogger.metaFunc(level, scope, format, args, data, std.time.milliTimestamp());
         }
     }.func;
 }
@@ -73,13 +74,7 @@ fn Logger(comptime writer: anytype) type {
             comptime format: []const u8,
             args: anytype,
         ) void {
-            metaFunc(
-                level,
-                scope,
-                format,
-                args,
-                null,
-            );
+            metaFunc(level, scope, format, args, null, std.time.milliTimestamp());
         }
 
         fn metaFunc(
@@ -88,16 +83,21 @@ fn Logger(comptime writer: anytype) type {
             comptime format: []const u8,
             args: anytype,
             meta: anytype,
+            milliTimestamp: i64,
         ) void {
             var msg: [std.fmt.count(format, args)]u8 = undefined;
             _ = std.fmt.bufPrint(&msg, format, args) catch |e| {
                 std.debug.print("caught err writing to buffer {any}", .{e});
             };
+            var tsbuf: [26]u8 = undefined;
+            const ts = datetime.Datetime.fromTimestamp(milliTimestamp).formatISO8601Buf(&tsbuf, false) catch "-";
             var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
+                .ts = ts,
                 .level = level.asText(),
                 .msg = msg,
                 .scope = @tagName(scope),
             } else .{
+                .ts = ts,
                 .level = level.asText(),
                 .msg = msg,
                 .scope = @tagName(scope),
@@ -117,11 +117,26 @@ test "func" {
     defer list.deinit();
     comptime var writer = list.writer();
 
-    Logger(writer).func(.info, .bar, "test", .{});
+    Logger(writer).metaFunc(.info, .bar, "test", .{}, null, 1710775704741);
     const actual = try list.toOwnedSlice();
     defer allocator.free(actual);
     try std.testing.expectEqualStrings(
-        \\{"level":"info","msg":"test","scope":"bar"}
+        \\{"ts":"2024-03-18T15:28:24+00:00","level":"info","msg":"test","scope":"bar"}
+        \\
+    , actual);
+}
+
+test "metaFunc" {
+    const allocator = std.testing.allocator;
+    comptime var list = std.ArrayList(u8).init(allocator);
+    defer list.deinit();
+    comptime var writer = list.writer();
+
+    Logger(writer).metaFunc(.info, .bar, "test", .{}, .{ .custom = "field" }, 1710775704741);
+    const actual = try list.toOwnedSlice();
+    defer allocator.free(actual);
+    try std.testing.expectEqualStrings(
+        \\{"ts":"2024-03-18T15:28:24+00:00","level":"info","msg":"test","scope":"bar","meta":{"custom":"field"}}
         \\
     , actual);
 }
