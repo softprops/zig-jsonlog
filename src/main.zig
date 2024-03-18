@@ -64,7 +64,14 @@ fn withMeta(comptime data: anytype) LogFn {
             comptime format: []const u8,
             args: anytype,
         ) void {
-            defaultLogger.metaFunc(level, scope, format, args, data, std.time.milliTimestamp());
+            defaultLogger.metaFunc(
+                level,
+                scope,
+                format,
+                args,
+                data,
+                std.time.milliTimestamp(),
+            );
         }
     }.func;
 }
