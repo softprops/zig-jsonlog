@@ -160,12 +160,6 @@ fn impl(
     writer.writeAll("\n") catch return;
 }
 
-test {
-    // todo: figure how why refAllDecls doesn't pick up imported file tests
-    //std.testing.refAllDecls(@This());
-    _ = @import("timestamp.zig");
-}
-
 test "std" {
     var buf: [72]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
