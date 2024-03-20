@@ -14,6 +14,7 @@
 
 - zero-allocation
 - append arbitrary metadata to your logs
+- automatic newline insertion
 
 Coming soon...
 
