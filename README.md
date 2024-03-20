@@ -15,6 +15,12 @@
 - zero-allocation
 - append arbitrary metadata to your logs
 
+Coming soon...
+
+- configurable writers
+
+  currently jsonlog writes to stderr, as the default std log fn does. we'd like to make the writer user configurable.
+
 ## examples
 
 ```zig
