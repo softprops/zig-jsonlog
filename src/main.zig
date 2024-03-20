@@ -145,6 +145,12 @@ inline fn impl(
         std.debug.print("caught err writing to buffer {any}", .{e});
         return;
     };
+    // it's common for users of log.log.{info,warn,...} to append a new line to log formats
+    // these are not needed here as we produce newline delimited json
+    var message: []u8 = &msg;
+    if (std.mem.endsWith(u8, &msg, "\n")) {
+        message = msg[0 .. msg.len - 1];
+    }
     var tsbuf: [24]u8 = undefined; // yyyy-mm-ddThh:mm:ss:SSSZ
     const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpocMillis(epocMillis)}) catch |e| blk: {
         // the only possible error here is errror.NoSpaceLeft and if that happens
@@ -155,19 +161,19 @@ inline fn impl(
     const payload = if (@TypeOf(meta) == @TypeOf(null)) .{
         .ts = ts,
         .level = level.asText(),
-        .msg = msg,
+        .msg = message,
         .scope = @tagName(scope),
     } else .{
         .ts = ts,
         .level = level.asText(),
-        .msg = msg,
+        .msg = message,
         .scope = @tagName(scope),
         .meta = meta,
     };
     nosuspend std.json.stringify(payload, .{}, writer) catch |e| {
         std.debug.print("caught err writing json {any}", .{e});
     };
-    writer.writeAll("\n") catch return;
+    writer.writeByte('\n') catch return;
 }
 
 test "std" {
