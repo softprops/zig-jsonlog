@@ -8,6 +8,16 @@
 //!   pub const logFn = jsonLog.func;
 //! }
 //! ```
+//!
+//! In addition you may use an alternate interface which allows you to provide
+//! arbitrary metadata with logs.
+//!
+//! ```zig
+//! const jsonLog = @import("jsonlog");
+//! jsonLog.info("looks good to me", .{}, .{
+//!   .foo = "bar",
+//! });
+//! ```
 const std = @import("std");
 const timestamp = @import("timestamp.zig");
 
