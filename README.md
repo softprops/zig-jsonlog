@@ -10,29 +10,9 @@
 
 [![ci](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml/badge.svg)](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml) ![License Info](https://img.shields.io/github/license/softprops/zig-jsonlog) ![Releases](https://img.shields.io/github/v/release/softprops/zig-jsonlog) [![Zig Support](https://img.shields.io/badge/zig-0.11.0-black?logo=zig)](https://ziglang.org/documentation/0.11.0/)
 
-```zig
-pub fn main() !void {
-    std.log.info("hello {s}\n", .{"world"});
-    std.log.info("hello {s}\n", .{"you"});
-}
-```
-
-from
-
-```
-info: hello world
-info: hello you
-```
-
-to
-
-```json
-{"ts":"2024-03-20T15:55:30.289Z","level":"info","msg":"hello world","scope":"default"}
-{"ts":"2024-03-20T15:55:30.289Z","level":"info","msg":"hello you","scope":"default"}
-```
-
 ## 🍬 features
 
+- make your logs easy to query with tools like aws cloud watch insights
 - zero-allocation
 - append arbitrary metadata to your logs
 - automatic newline insertion
