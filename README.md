@@ -48,13 +48,13 @@ pub fn main() void {
 }
 ```
 
-```
-{"ts":"2024-03-20T14:34:46Z","level":"debug","msg":"DEBUG","scope":"demo"}
-{"ts":"2024-03-20T14:34:46Z","level":"info","msg":"INFO","scope":"demo"}
-{"ts":"2024-03-20T14:34:46Z","level":"warning","msg":"WARN","scope":"demo"}
-{"ts":"2024-03-20T14:34:46Z","level":"error","msg":"ERR","scope":"demo"}
-{"ts":"2024-03-20T14:34:46Z","level":"info","msg":"things are happening","scope":"default","meta":{"endpoint":"/home","method":"GET"}}
-{"ts":"2024-03-20T14:34:46Z","level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
+```json
+{"ts":"2024-03-20T15:07:15.363Z","level":"debug","msg":"DEBUG","scope":"demo"}
+{"ts":"2024-03-20T15:07:15.364Z","level":"info","msg":"INFO","scope":"demo"}
+{"ts":"2024-03-20T15:07:15.364Z","level":"warning","msg":"WARN","scope":"demo"}
+{"ts":"2024-03-20T15:07:15.364Z","level":"error","msg":"ERR","scope":"demo"}
+{"ts":"2024-03-20T15:07:15.364Z","level":"info","msg":"things are happening","scope":"default","meta":{"endpoint":"/home","method":"GET"}}
+{"ts":"2024-03-20T15:07:15.364Z","level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
 ```
 
 ## 📼 installing

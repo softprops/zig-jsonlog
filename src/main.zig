@@ -72,7 +72,7 @@ fn withMeta(comptime data: anytype) LogFn {
                 format,
                 args,
                 data,
-                std.time.timestamp(),
+                std.time.milliTimestamp(),
             );
         }
     }.func;
@@ -92,7 +92,7 @@ fn Logger(comptime writer: anytype) type {
                 format,
                 args,
                 null,
-                std.time.timestamp(),
+                std.time.milliTimestamp(),
             );
         }
 
@@ -102,7 +102,7 @@ fn Logger(comptime writer: anytype) type {
             comptime format: []const u8,
             args: anytype,
             meta: anytype,
-            epocSeconds: i64,
+            epocMillis: i64,
         ) void {
             impl(
                 level,
@@ -110,7 +110,7 @@ fn Logger(comptime writer: anytype) type {
                 format,
                 args,
                 meta,
-                epocSeconds,
+                epocMillis,
                 writer,
             );
         }
@@ -123,7 +123,7 @@ fn impl(
     comptime format: []const u8,
     args: anytype,
     meta: anytype,
-    epocSeconds: i64,
+    epocMillis: i64,
     writer: anytype,
 ) void {
     var msg: [std.fmt.count(format, args)]u8 = undefined;
@@ -133,8 +133,8 @@ fn impl(
         std.debug.print("caught err writing to buffer {any}", .{e});
         return;
     };
-    var tsbuf: [20]u8 = undefined; // yyyy-mm-ddThh:mm:ssZ
-    const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpocSeconds(epocSeconds)}) catch |e| blk: {
+    var tsbuf: [24]u8 = undefined; // yyyy-mm-ddThh:mm:ss:SSSZ
+    const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpocMillis(epocMillis)}) catch |e| blk: {
         // the only possible error here is errror.NoSpaceLeft and if that happens
         // in means the std lib timestamp.format(...) is broken
         std.debug.print("timestamp error {any}", .{e});
@@ -159,27 +159,43 @@ fn impl(
 }
 
 test "std" {
-    var buf: [72]u8 = undefined;
+    var buf: [76]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
     const writer = fbs.writer();
 
-    impl(.info, .bar, "test", .{}, null, 1710941602, writer);
+    impl(
+        .info,
+        .bar,
+        "test",
+        .{},
+        null,
+        1710946475600,
+        writer,
+    );
     const actual = fbs.getWritten();
     try std.testing.expectEqualStrings(
-        \\{"ts":"2024-03-20T13:33:22Z","level":"info","msg":"test","scope":"bar"}
+        \\{"ts":"2024-03-20T14:54:35.600Z","level":"info","msg":"test","scope":"bar"}
         \\
     , actual);
 }
 
 test "meta" {
-    var buf: [98]u8 = undefined;
+    var buf: [103]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
     const writer = fbs.writer();
 
-    impl(.info, .bar, "test", .{}, .{ .custom = "field" }, 1710941602, writer);
+    impl(
+        .info,
+        .bar,
+        "test",
+        .{},
+        .{ .custom = "field" },
+        1710946475600,
+        writer,
+    );
     const actual = fbs.getWritten();
     try std.testing.expectEqualStrings(
-        \\{"ts":"2024-03-20T13:33:22Z","level":"info","msg":"test","scope":"bar","meta":{"custom":"field"}}
+        \\{"ts":"2024-03-20T14:54:35.600Z","level":"info","msg":"test","scope":"bar","meta":{"custom":"field"}}
         \\
     , actual);
 }
