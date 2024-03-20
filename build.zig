@@ -15,15 +15,9 @@ pub fn build(b: *std.Build) !void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const datetime = b.dependency("datetime", .{
-        .target = target,
-        .optimize = optimize,
-    });
-
     // create a module to be used internally.
     const jsonlog_module = b.createModule(.{
         // fixme(0.12): .source_file -> root_source_file
-        .dependencies = &.{.{ .name = "datetime", .module = datetime.module("zig-datetime") }},
         .source_file = .{ .path = "src/main.zig" },
     });
 
@@ -38,7 +32,6 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    unit_tests.addModule("datetime", datetime.module("zig-datetime"));
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 

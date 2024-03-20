@@ -9,7 +9,7 @@
 //! }
 //! ```
 const std = @import("std");
-const datetime = @import("datetime").datetime;
+const timestamp = @import("timestamp.zig");
 
 const LogFn = fn (comptime std.log.Level, comptime @TypeOf(.enum_literal), comptime []const u8, anytype) void;
 
@@ -22,38 +22,42 @@ pub const logFn = defaultLogger.func;
 
 const default = scoped(.default);
 
-///  Same as std.log.scoped by provides an api for supplying arbitrary metadata to log entries
+/// Same as `std.log.scoped` but provides an interface for supplying arbitrary metadata with
+/// log entries which will get serialized to JSON
 pub fn scoped(comptime scope: @Type(.EnumLiteral)) type {
     return struct {
-        /// Same as std.log.debug except you may provide arbitrary metadata to serialize with log output
+        /// Same as `std.log.debug` except you may provide arbitrary metadata to serialize with log output
         pub fn debug(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.debug, scope, format, args);
         }
 
-        /// Same as std.log.info except you may provide arbitrary metadata to serialize with log output
+        /// Same as `std.log.info` except you may provide arbitrary metadata to serialize with log output
         pub fn info(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.info, scope, format, args);
         }
 
-        /// Same as std.log.warn except you may provide arbitrary metadata to serialize with log output
+        /// Same as `std.log.warn` except you may provide arbitrary metadata to serialize with log output
         pub fn warn(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.warn, scope, format, args);
         }
 
-        /// Same as std.log.err except you may provide arbitrary metadata to serialize with log output
+        /// Same as `std.log.err` except you may provide arbitrary metadata to serialize with log output
         pub fn err(comptime format: []const u8, args: anytype, meta: anytype) void {
             withMeta(meta)(.err, scope, format, args);
         }
     };
 }
 
-/// Same as std.log.debug except you may provide arbitrary metadata to serialize with log output
+/// Same as `std.log.debug` except you may provide arbitrary metadata to serialize with log output
 pub const debug = default.debug;
-/// Same as std.log.info except you may provide arbitrary metadata to serialize with log output
+
+/// Same as `std.log.info` except you may provide arbitrary metadata to serialize with log output
 pub const info = default.info;
-/// Same as std.log.warn except you may provide arbitrary metadata to serialize with log output
+
+/// Same as `std.log.warn` except you may provide arbitrary metadata to serialize with log output
 pub const warn = default.warn;
-/// Same as std.log.err except you may provide arbitrary metadata to serialize with log output
+
+/// Same as `std.log.err` except you may provide arbitrary metadata to serialize with log output
 pub const err = default.err;
 
 fn withMeta(comptime data: anytype) LogFn {
@@ -70,7 +74,7 @@ fn withMeta(comptime data: anytype) LogFn {
                 format,
                 args,
                 data,
-                std.time.milliTimestamp(),
+                std.time.timestamp(),
             );
         }
     }.func;
@@ -100,66 +104,90 @@ fn Logger(comptime writer: anytype) type {
             comptime format: []const u8,
             args: anytype,
             meta: anytype,
-            milliTimestamp: i64,
+            epocSeconds: i64,
         ) void {
-            var msg: [std.fmt.count(format, args)]u8 = undefined;
-            _ = std.fmt.bufPrint(&msg, format, args) catch |e| {
-                // the only possible error here is errror.NoSpaceLeft and if that happens
-                // in means the std lib fmt.count(...) is broken
-                std.debug.print("caught err writing to buffer {any}", .{e});
-                return;
-            };
-            var tsbuf: [32]u8 = undefined; // yyyy-mm-ddThh:mm:ss+hh:ss
-            const ts = datetime.Datetime.fromTimestamp(milliTimestamp).formatISO8601Buf(&tsbuf, false) catch |e| blk: {
-                std.debug.print("timestamp error {any}", .{e});
-                break :blk "???";
-            };
-            var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
-                .ts = ts,
-                .level = level.asText(),
-                .msg = msg,
-                .scope = @tagName(scope),
-            } else .{
-                .ts = ts,
-                .level = level.asText(),
-                .msg = msg,
-                .scope = @tagName(scope),
-                .meta = meta,
-            };
-            nosuspend std.json.stringify(payload, .{}, writer) catch |e| {
-                std.debug.print("caught err writing json {any}", .{e});
-            };
-            writer.writeAll("\n") catch return;
+            impl(
+                level,
+                scope,
+                format,
+                args,
+                meta,
+                epocSeconds,
+                writer,
+            );
         }
     };
 }
 
-test "func" {
-    const allocator = std.testing.allocator;
-    comptime var list = std.ArrayList(u8).init(allocator);
-    defer list.deinit();
-    comptime var writer = list.writer();
+fn impl(
+    comptime level: std.log.Level,
+    comptime scope: @TypeOf(.EnumLiteral),
+    comptime format: []const u8,
+    args: anytype,
+    meta: anytype,
+    epocSeconds: i64,
+    writer: anytype,
+) void {
+    var msg: [std.fmt.count(format, args)]u8 = undefined;
+    _ = std.fmt.bufPrint(&msg, format, args) catch |e| {
+        // the only possible error here is errror.NoSpaceLeft and if that happens
+        // in means the std lib fmt.count(...) is broken
+        std.debug.print("caught err writing to buffer {any}", .{e});
+        return;
+    };
+    var tsbuf: [20]u8 = undefined; // yyyy-mm-ddThh:mm:ssZ
+    const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpocSeconds(epocSeconds)}) catch |e| blk: {
+        // the only possible error here is errror.NoSpaceLeft and if that happens
+        // in means the std lib timestamp.format(...) is broken
+        std.debug.print("timestamp error {any}", .{e});
+        break :blk "???";
+    };
+    var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
+        .ts = ts,
+        .level = level.asText(),
+        .msg = msg,
+        .scope = @tagName(scope),
+    } else .{
+        .ts = ts,
+        .level = level.asText(),
+        .msg = msg,
+        .scope = @tagName(scope),
+        .meta = meta,
+    };
+    nosuspend std.json.stringify(payload, .{}, writer) catch |e| {
+        std.debug.print("caught err writing json {any}", .{e});
+    };
+    writer.writeAll("\n") catch return;
+}
 
-    Logger(writer).metaFunc(.info, .bar, "test", .{}, null, 1710775704741);
-    const actual = try list.toOwnedSlice();
-    defer allocator.free(actual);
+test {
+    // todo: figure how why refAllDecls doesn't pick up imported file tests
+    //std.testing.refAllDecls(@This());
+    _ = @import("timestamp.zig");
+}
+
+test "std" {
+    var buf: [200]u8 = undefined;
+    var fbs = std.io.fixedBufferStream(&buf);
+    const writer = fbs.writer();
+
+    impl(.info, .bar, "test", .{}, null, 1710941602, writer);
+    const actual = fbs.getWritten();
     try std.testing.expectEqualStrings(
-        \\{"ts":"2024-03-18T15:28:24+00:00","level":"info","msg":"test","scope":"bar"}
+        \\{"ts":"2024-03-20T13:33:22Z","level":"info","msg":"test","scope":"bar"}
         \\
     , actual);
 }
 
-test "metaFunc" {
-    const allocator = std.testing.allocator;
-    comptime var list = std.ArrayList(u8).init(allocator);
-    defer list.deinit();
-    comptime var writer = list.writer();
+test "meta" {
+    var buf: [200]u8 = undefined;
+    var fbs = std.io.fixedBufferStream(&buf);
+    const writer = fbs.writer();
 
-    Logger(writer).metaFunc(.info, .bar, "test", .{}, .{ .custom = "field" }, 1710775704741);
-    const actual = try list.toOwnedSlice();
-    defer allocator.free(actual);
+    impl(.info, .bar, "test", .{}, .{ .custom = "field" }, 1710941602, writer);
+    const actual = fbs.getWritten();
     try std.testing.expectEqualStrings(
-        \\{"ts":"2024-03-18T15:28:24+00:00","level":"info","msg":"test","scope":"bar","meta":{"custom":"field"}}
+        \\{"ts":"2024-03-20T13:33:22Z","level":"info","msg":"test","scope":"bar","meta":{"custom":"field"}}
         \\
     , actual);
 }
