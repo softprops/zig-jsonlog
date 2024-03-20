@@ -78,6 +78,8 @@ fn withMeta(comptime data: anytype) LogFn {
     }.func;
 }
 
+// fixme: not all possible writers can be comptime. rework this interface so runtime
+// writers can be provided
 fn Logger(comptime writer: anytype) type {
     return struct {
         fn func(
