@@ -152,7 +152,7 @@ inline fn impl(
         std.debug.print("timestamp error {any}", .{e});
         break :blk "???";
     };
-    var payload = if (@TypeOf(meta) == @TypeOf(null)) .{
+    const payload = if (@TypeOf(meta) == @TypeOf(null)) .{
         .ts = ts,
         .level = level.asText(),
         .msg = msg,
