@@ -14,7 +14,7 @@ Initial version
             // 👇 uri to download
             .url = "https://github.com/softprops/zig-jsonlog/archive/refs/tags/v0.1.0.tar.gz",
             // 👇 hash verification
-            //.hash = "{...}",
+            //.hash = "1220b444a86bc4261c025d9ad318919c03219e23722c43a4d97db8c3225a483fc7c8",
         },
     },
 }
