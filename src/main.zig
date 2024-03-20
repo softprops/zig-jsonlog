@@ -167,7 +167,7 @@ test {
 }
 
 test "std" {
-    var buf: [200]u8 = undefined;
+    var buf: [72]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
     const writer = fbs.writer();
 
@@ -180,7 +180,7 @@ test "std" {
 }
 
 test "meta" {
-    var buf: [200]u8 = undefined;
+    var buf: [98]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buf);
     const writer = fbs.writer();
 
