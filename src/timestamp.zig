@@ -9,7 +9,7 @@ pub const Timestamp = struct {
     }
 
     /// typically millis will come from `std.time.milliTimestamp()`
-    pub fn fromEpocMillis(millis: i64) Timestamp {
+    pub fn fromEpochMillis(millis: i64) Timestamp {
         return Timestamp{ .millis = millis };
     }
 
@@ -43,7 +43,7 @@ test "fmt" {
     const actual = try std.fmt.bufPrint(
         &buf,
         "{any}",
-        .{Timestamp.fromEpocMillis(1710946475600)},
+        .{Timestamp.fromEpochMillis(1710946475600)},
     );
     try std.testing.expectEqualStrings(
         "2024-03-20T14:54:35.600Z",

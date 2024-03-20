@@ -145,14 +145,14 @@ inline fn impl(
         std.debug.print("caught err writing to buffer {any}", .{e});
         return;
     };
-    // it's common for users of log.log.{info,warn,...} to append a new line to log formats
+    // it's common for users of std.log.{info,warn,...} to append a new line to log formats
     // these are not needed here as we produce newline delimited json
     var message: []u8 = &msg;
     if (std.mem.endsWith(u8, &msg, "\n")) {
         message = msg[0 .. msg.len - 1];
     }
     var tsbuf: [24]u8 = undefined; // yyyy-mm-ddThh:mm:ss:SSSZ
-    const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpocMillis(epocMillis)}) catch |e| blk: {
+    const ts = std.fmt.bufPrint(&tsbuf, "{any}", .{timestamp.Timestamp.fromEpochMillis(epocMillis)}) catch |e| blk: {
         // the only possible error here is errror.NoSpaceLeft and if that happens
         // in means the std lib timestamp.format(...) is broken
         std.debug.print("timestamp error {any}", .{e});
