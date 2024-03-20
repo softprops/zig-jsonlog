@@ -16,8 +16,6 @@ const LogFn = fn (comptime std.log.Level, comptime @TypeOf(.enum_literal), compt
 const defaultLogger = Logger(std.io.getStdErr().writer());
 
 /// A JSON-based logging impl that writes to stderr
-///
-/// To write to another `std.io.Writer` use `loggerFn(yourWriter)`
 pub const logFn = defaultLogger.func;
 
 const default = scoped(.default);
