@@ -117,7 +117,7 @@ fn Logger(comptime writer: anytype) type {
     };
 }
 
-fn impl(
+inline fn impl(
     comptime level: std.log.Level,
     comptime scope: @TypeOf(.EnumLiteral),
     comptime format: []const u8,
