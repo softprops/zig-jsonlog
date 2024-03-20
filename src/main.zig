@@ -92,7 +92,7 @@ fn Logger(comptime writer: anytype) type {
                 format,
                 args,
                 null,
-                std.time.milliTimestamp(),
+                std.time.timestamp(),
             );
         }
 

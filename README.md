@@ -23,15 +23,24 @@ const jsonLog = @import("jsonlog");
 const log = std.log.scoped(.demo);
 
 pub const std_options = struct {
+    // configure the std lib log api fn to use jsonlog formatting
     pub const logFn = jsonLog.logFn;
 };
 
 pub fn main() void {
+    // std log interface
     log.debug("DEBUG", .{});
     log.info("INFO", .{});
     log.warn("WARN", .{});
     log.err("ERR", .{});
 
+    // jsonLog interface for provoding arbitrary structured metadata
+    jsonLog.info("things are happening", .{}, .{
+        .endpoint = "/home",
+        .method = "GET",
+    });
+
+    // create a custom scope for doing the same
     jsonLog.scoped(.demo).warn("things could be better", .{}, .{
         .endpoint = "/home",
         .method = "GET",
@@ -40,11 +49,12 @@ pub fn main() void {
 ```
 
 ```
-{"ts":"2024-03-18T15:32:37+00:00","level":"debug","msg":"DEBUG","scope":"demo"}
-{"ts":"2024-03-18T15:32:37+00:00","level":"info","msg":"INFO","scope":"demo"}
-{"ts":"2024-03-18T15:32:37+00:00","level":"warning","msg":"WARN","scope":"demo"}
-{"ts":"2024-03-18T15:32:37+00:00","level":"error","msg":"ERR","scope":"demo"}
-{"ts":"2024-03-18T15:32:37+00:00","level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
+{"ts":"2024-03-20T14:34:46Z","level":"debug","msg":"DEBUG","scope":"demo"}
+{"ts":"2024-03-20T14:34:46Z","level":"info","msg":"INFO","scope":"demo"}
+{"ts":"2024-03-20T14:34:46Z","level":"warning","msg":"WARN","scope":"demo"}
+{"ts":"2024-03-20T14:34:46Z","level":"error","msg":"ERR","scope":"demo"}
+{"ts":"2024-03-20T14:34:46Z","level":"info","msg":"things are happening","scope":"default","meta":{"endpoint":"/home","method":"GET"}}
+{"ts":"2024-03-20T14:34:46Z","level":"warning","msg":"things could be better","scope":"demo","meta":{"endpoint":"/home","method":"GET"}}
 ```
 
 ## 📼 installing
