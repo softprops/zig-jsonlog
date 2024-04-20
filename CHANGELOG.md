@@ -1,3 +1,7 @@
+# 0.2.0
+
+Upgrade to zig 0.12.0, current stable
+
 # 0.1.0
 
 Initial version

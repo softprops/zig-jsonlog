@@ -2,9 +2,9 @@ const std = @import("std");
 const jsonLog = @import("jsonlog");
 const log = std.log.scoped(.demo);
 
-pub const std_options = struct {
+pub const std_options: std.Options = .{
     // configure the std lib log api fn to use jsonlog formatting
-    pub const logFn = jsonLog.logFn;
+    .logFn = jsonLog.logFn,
 };
 
 pub fn main() void {
