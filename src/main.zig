@@ -4,9 +4,9 @@
 //!
 //! ```zig
 //! const jsonLog = @import("jsonlog");
-//! pub const std_options = struct {
-//!   pub const logFn = jsonLog.func;
-//! }
+//! pub const std_options: std.Options = .{
+//!   .logFn = jsonLog.func,
+//! };
 //! ```
 //!
 //! In addition you may use an alternate interface which allows you to provide

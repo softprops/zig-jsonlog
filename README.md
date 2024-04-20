@@ -8,7 +8,7 @@
 
 ---
 
-[![ci](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml/badge.svg)](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml) ![License Info](https://img.shields.io/github/license/softprops/zig-jsonlog) ![Releases](https://img.shields.io/github/v/release/softprops/zig-jsonlog) [![Zig Support](https://img.shields.io/badge/zig-0.11.0-black?logo=zig)](https://ziglang.org/documentation/0.11.0/)
+[![ci](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml/badge.svg)](https://github.com/softprops/zig-jsonlog/actions/workflows/ci.yml) ![License Info](https://img.shields.io/github/license/softprops/zig-jsonlog) ![Releases](https://img.shields.io/github/v/release/softprops/zig-jsonlog) [![Zig Support](https://img.shields.io/badge/zig-0.12.0-black?logo=zig)](https://ziglang.org/documentation/0.12.0/)
 
 ## 🍬 features
 
@@ -30,9 +30,9 @@ const std = @import("std");
 const jsonLog = @import("jsonlog");
 const log = std.log.scoped(.demo);
 
-pub const std_options = struct {
+pub const std_options: std.Options = .{
     // configure the std lib log api fn to use jsonlog formatting
-    pub const logFn = jsonLog.logFn;
+    .logFn = jsonLog.logFn,
 };
 
 pub fn main() void {
@@ -73,18 +73,18 @@ Create a `build.zig.zon` file to declare a dependency
 
 > .zon short for "zig object notation" files are essentially zig structs. `build.zig.zon` is zigs native package manager convention for where to declare dependencies
 
-```zig
+```diff
 .{
     .name = "my-app",
     .version = "0.1.0",
     .dependencies = .{
-        // 👇 declare dep properties
-        .jsonlog = .{
-            // 👇 uri to download
-            .url = "https://github.com/softprops/zig-jsonlog/archive/refs/tags/v0.1.0.tar.gz",
-            // 👇 hash verification
-            .hash = "1220b444a86bc4261c025d9ad318919c03219e23722c43a4d97db8c3225a483fc7c8",
-        },
++       // 👇 declare dep properties
++        .jsonlog = .{
++            // 👇 uri to download
++            .url = "https://github.com/softprops/zig-jsonlog/archive/refs/tags/v0.2.0.tar.gz",
++            // 👇 hash verification
++            .hash = "...",
++        },
     },
 }
 ```
@@ -93,7 +93,7 @@ Create a `build.zig.zon` file to declare a dependency
 
 Add the following in your `build.zig` file
 
-```zig
+```diff
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
@@ -101,10 +101,10 @@ pub fn build(b: *std.Build) void {
 
     const optimize = b.standardOptimizeOption(.{});
     // 👇 de-reference jsonlog dep from build.zig.zon
-    const jsonlog = b.dependency("jsonlog", .{
-        .target = target,
-        .optimize = optimize,
-    });
++    const jsonlog = b.dependency("jsonlog", .{
++        .target = target,
++        .optimize = optimize,
++    }).module("jsonlog");
     var exe = b.addExecutable(.{
         .name = "your-exe",
         .root_source_file = .{ .path = "src/main.zig" },
@@ -112,7 +112,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // 👇 add the jsonlog module to executable
-    exe.addModule("jsonlog", jsonlog.module("jsonlog"));
++    exe.root_mode.addImport("jsonlog", jsonlog);
 
     b.installArtifact(exe);
 }
