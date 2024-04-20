@@ -2,6 +2,8 @@
 
 Upgrade to zig 0.12.0, current stable
 
+The main changes were artifacts of the [0.12.0 std_options](https://ziglang.org/download/0.12.0/release-notes.html#toc-Global-Configuration) and build configuration changes. See the readme for the latest install notes.
+
 # 0.1.0
 
 Initial version
