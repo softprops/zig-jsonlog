@@ -73,7 +73,7 @@ Create a `build.zig.zon` file to declare a dependency
 
 > .zon short for "zig object notation" files are essentially zig structs. `build.zig.zon` is zigs native package manager convention for where to declare dependencies
 
-```zig,diff
+```diff
 .{
     .name = "my-app",
     .version = "0.1.0",
@@ -93,7 +93,7 @@ Create a `build.zig.zon` file to declare a dependency
 
 Add the following in your `build.zig` file
 
-```zig,diff
+```diff
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
