@@ -73,6 +73,14 @@ Create a `build.zig.zon` file to declare a dependency
 
 > .zon short for "zig object notation" files are essentially zig structs. `build.zig.zon` is zigs native package manager convention for where to declare dependencies
 
+Starting in zig 0.12.0, you can use and should prefer
+
+```sh
+zig fetch --save https://github.com/softprops/zig-jsonlog/archive/refs/tags/v0.2.0.tar.gz
+```
+
+otherwise, to manually add it, do so as follows
+
 ```diff
 .{
     .name = "my-app",
