@@ -1,3 +1,7 @@
+# 0.2.1
+
+Upgrade to zig 0.13.0, current stable. No breaking changes.
+
 # 0.2.0
 
 Upgrade to zig 0.12.0, current stable
